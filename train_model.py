@@ -50,8 +50,7 @@ with mlflow.start_run() as run:
     mlflow.sklearn.log_model(
         sk_model = model,
         name = "logistic-model",
-        input_example = X_train,
-        registered_model_name = 'LogisticRegressionModel')
+        input_example = X_train)
     print(f'Model registered and logged with MLflow {mlflow.active_run().info.run_id}')
 
     # Link DVC data version to MLflow run (conceptually, actual DVC integration is more advanced)
