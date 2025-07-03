@@ -126,6 +126,14 @@ def main():
                 print("Model logged with MLflow sklearn")
             except Exception as e2:
                 print(f'Error with MLflow model logging: {e2}')
+            try:
+                import joblib
+                model_path = os.path.join(mlruns_dir, 'model.pkl')
+                joblib.dump(model, model_path)
+                mlflow.log_artifact(model_path, 'model')
+                print(f'Model saved to {model_path}')
+            except Exception as e2:
+                print(f'Error saving model: {e2}')
         
         print("Training completed successfully!")
         return accuracy
