@@ -1,6 +1,4 @@
 
-# .github/workflows/mlops_pipeline.yml
-
 name: MLOps CI/CD Pipeline
 
 # This workflow is triggered on pushes to the 'main' branch.
@@ -25,10 +23,12 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12.4' # Ensure this matches your local environment or app_requirements.txt
+        python-version: '3.9' # Ensure this matches your local environment or app_requirements.txt
 
     - name: Install dependencies for app.py
-      run: pip install -r app_requirements.txt # Install only what's needed for the app/inference
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r app_requirements.txt # Install only what's needed for the app/inference
 
     - name: Run unit tests (Placeholder)
       # In a real project, you'd have 'pytest' or similar here
@@ -54,26 +54,42 @@ jobs:
         python-version: '3.9'
 
     - name: Install full ML dependencies (for training)
-      # If you used environment.yml with conda, you'd use a different action/commands here.
-      # For simplicity, if using pip for all, use requirements.txt (your dev env)
       run: |
-        # For Conda:
-        # conda env create -f environment.yml
-        # conda activate mlops_env
-        # For Pip (assuming your requirements.txt covers dev/training libs):
-        pip install -r app_requirements.txt pandas scikit-learn numpy mlflow joblib # Ensure all training libs are here
+        python -m pip install --upgrade pip
+        # Install core ML dependencies with specific versions to avoid conflicts
+        pip install pandas>=1.3.0 scikit-learn>=1.0.0 numpy>=1.20.0 mlflow>=2.0.0 joblib>=1.0.0
+        # Install app requirements
+        pip install -r app_requirements.txt
+
+    - name: Create data directory
+      run: mkdir -p data
 
     - name: Generate Data (simulate data ingestion/validation)
       run: python generate_data.py
       # In a real pipeline, this would involve more sophisticated data validation
       # and potentially DVC commands to pull/push data.
 
+    - name: Verify data generation
+      run: |
+        ls -la data/
+        echo "First 5 lines of generated data:"
+        head -5 data/raw_data.csv
+
+    - name: Create MLflow directory
+      run: mkdir -p mlruns
+
     - name: Train Model & Log with MLflow
       # Note: MLflow will log to './mlruns' locally within the GitHub Actions runner.
       # For persistent MLflow tracking, you'd configure a remote tracking URI.
       run: python train_model.py
       env:
-        MLFLOW_TRACKING_URI: ./mlruns # Keep it local to the runner for this demo
+        PYTHONPATH: ${{ github.workspace }}
+        HOME: ${{ github.workspace }}
+
+    - name: Verify MLflow artifacts
+      run: |
+        echo "MLflow runs directory:"
+        find mlruns/ -type f -name "*.pkl" -o -name "*.json" | head -10
 
     - name: Archive MLflow Artifacts
       # This step saves the MLflow run artifacts (model, metrics, params)
@@ -98,7 +114,9 @@ jobs:
         python-version: '3.9'
 
     - name: Install dependencies for evaluation
-      run: pip install pandas scikit-learn numpy # Minimal for evaluation if separate script
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas scikit-learn numpy mlflow # Minimal for evaluation if separate script
 
     - name: Download MLflow Artifacts
       uses: actions/download-artifact@v4
@@ -113,13 +131,15 @@ jobs:
       run: |
         echo "Simulating model evaluation..."
         # Find the latest run's artifact path for the model
-        LATEST_RUN_DIR=$(find mlruns -maxdepth 2 -type d -name "artifacts" | head -n 1)
-        if [ -d "$LATEST_RUN_DIR/model" ]; then
+        LATEST_RUN_DIR=$(find mlruns -maxdepth 3 -type d -name "artifacts" | head -n 1)
+        if [ -d "$LATEST_RUN_DIR/logistic-model" ]; then
           echo "Model artifact found. Evaluation criteria would be checked here."
           echo "Simulated evaluation passed. Model ready for registration/packaging."
           # Real step would be: mlflow.register_model(...) or promote to staging
         else
           echo "Model artifact not found. Evaluation failed."
+          ls -la mlruns/
+          find mlruns/ -name "*.pkl" -o -name "*.json" | head -10
           exit 1
         fi
 

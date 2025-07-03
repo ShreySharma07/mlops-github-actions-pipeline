@@ -1,88 +1,137 @@
 
-
 import mlflow
 import mlflow.sklearn
 import pandas as pd
 import os
+import sys
+import warnings
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
-from mlflow.models.signature import infer_signature
 
-# Use relative paths that work in both local and CI environments
-mlflow.set_tracking_uri("file:./mlruns")
-mlflow.set_experiment('LogisticRegressionExperiment')
+# Suppress MLflow warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
-with mlflow.start_run() as run:
+def main():
+    """Main training function."""
+    print("Starting MLflow training pipeline...")
+    
+    # Get current working directory
+    current_dir = os.getcwd()
+    print(f"Current working directory: {current_dir}")
+    
+    # Create mlruns directory in current workspace
+    mlruns_dir = os.path.join(current_dir, 'mlruns')
+    os.makedirs(mlruns_dir, exist_ok=True)
+    
+    # Set MLflow tracking URI to local directory
+    mlflow.set_tracking_uri(f"file:{mlruns_dir}")
+    
+    # Set experiment
     try:
-        # Use relative path that works in GitHub Actions
-        data_path = os.path.join('data', 'raw_data.csv')
-        data = pd.read_csv(data_path)
-        X = data.drop('target', axis=1)
-        y = data['target']
-    except FileNotFoundError as e:
-        print(f'Error: {e}')
-        print(f'Current working directory: {os.getcwd()}')
-        print(f'Files in current directory: {os.listdir(".")}')
-        exit(1)
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    X_train = X_train.astype('float64')
-    X_test = X_test.astype('float64')
-    
-    # Convert target to float64 to avoid MLflow schema warnings
-    y_train = y_train.astype('float64')
-    y_test = y_test.astype('float64')
-    
-    # Define model parameters and log them with mlflow
-    solver = 'lbfgs'
-    c = 10.0
-    random_state_model = 42
-    
-    mlflow.log_param('solver', solver)
-    mlflow.log_param('C', c)
-    mlflow.log_param('random_state', random_state_model)
-    
-    # Training the model
-    model = LogisticRegression(solver=solver, C=c, random_state=random_state_model)
-    model.fit(X_train, y_train)
-    
-    # Evaluating the model
-    predictions = model.predict(X_test)
-    accuracy = accuracy_score(y_test, predictions)
-    
-    # ---- Logging metrics with MLflow ----
-    mlflow.log_metric('accuracy', accuracy)
-    print(f'Accuracy: {accuracy}')
-    
-    # Create signature with float64 types to avoid schema warnings
-    signature = infer_signature(X_train, predictions.astype('float64'))
-    
-    # ---- Logging model as artifact ----
-    mlflow.sklearn.log_model(
-        sk_model=model,
-        name="logistic-model",
-        input_example=X_train.head(5),
-        signature=signature
-    )
-    print(f'Model registered and logged with MLflow {mlflow.active_run().info.run_id}')
-    
-    # Link Git commit to MLflow run (safer error handling for CI)
-    try:
-        import subprocess
-        # Check if we're in a git repository
-        if os.path.exists('.git'):
-            git_commit = subprocess.check_output(
-                ['git', 'rev-parse', 'HEAD'], 
-                stderr=subprocess.DEVNULL
-            ).strip().decode('utf-8')
-            mlflow.set_tag('git_commit', git_commit)
-        else:
-            print('Not in a git repository, skipping git commit logging')
+        mlflow.set_experiment('LogisticRegressionExperiment')
     except Exception as e:
-        print(f'Error logging git commit: {e}')
-        # Don't exit on git errors in CI environment
+        print(f"Error setting experiment: {e}")
+        # Create experiment if it doesn't exist
+        mlflow.create_experiment('LogisticRegressionExperiment')
+        mlflow.set_experiment('LogisticRegressionExperiment')
+    
+    print(f"MLflow tracking URI: file:{mlruns_dir}")
+    
+    with mlflow.start_run():
+        try:
+            # Load data
+            data_path = os.path.join('data', 'raw_data.csv')
+            
+            if not os.path.exists(data_path):
+                print(f'Error: Data file not found at {data_path}')
+                print(f'Current directory contents: {os.listdir(".")}')
+                if os.path.exists('data'):
+                    print(f'Data directory contents: {os.listdir("data")}')
+                sys.exit(1)
+            
+            print(f'Loading data from {data_path}')
+            data = pd.read_csv(data_path)
+            print(f'Data loaded successfully. Shape: {data.shape}')
+            
+            X = data.drop('target', axis=1)
+            y = data['target']
+            
+        except Exception as e:
+            print(f'Error loading data: {e}')
+            sys.exit(1)
+        
+        # Split the data
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
+        
+        # Convert to float64 to avoid schema warnings
+        X_train = X_train.astype('float64')
+        X_test = X_test.astype('float64')
+        y_train = y_train.astype('float64')
+        y_test = y_test.astype('float64')
+        
+        print(f'Training set shape: {X_train.shape}')
+        print(f'Test set shape: {X_test.shape}')
+        
+        # Define model parameters
+        solver = 'lbfgs'
+        c = 10.0
+        random_state_model = 42
+        
+        # Log parameters
+        mlflow.log_param('solver', solver)
+        mlflow.log_param('C', c)
+        mlflow.log_param('random_state', random_state_model)
+        mlflow.log_param('test_size', 0.2)
+        
+        # Training the model
+        print("Training logistic regression model...")
+        model = LogisticRegression(
+            solver=solver, 
+            C=c, 
+            random_state=random_state_model,
+            max_iter=1000
+        )
+        model.fit(X_train, y_train)
+        
+        # Evaluating the model
+        print("Evaluating model...")
+        predictions = model.predict(X_test)
+        accuracy = accuracy_score(y_test, predictions)
+        
+        # Log metrics
+        mlflow.log_metric('accuracy', accuracy)
+        mlflow.log_metric('train_samples', len(X_train))
+        mlflow.log_metric('test_samples', len(X_test))
+        
+        print(f'Accuracy: {accuracy:.4f}')
+        
+        # Save model using joblib (simpler approach)
+        try:
+            import joblib
+            model_path = os.path.join(mlruns_dir, 'model.pkl')
+            joblib.dump(model, model_path)
+            mlflow.log_artifact(model_path, 'model')
+            print(f'Model saved to {model_path}')
+        except Exception as e:
+            print(f'Error saving model: {e}')
+            # Try MLflow's built-in model logging as fallback
+            try:
+                mlflow.sklearn.log_model(
+                    sk_model=model,
+                    artifact_path="logistic-model"
+                )
+                print("Model logged with MLflow sklearn")
+            except Exception as e2:
+                print(f'Error with MLflow model logging: {e2}')
+        
+        print("Training completed successfully!")
+        return accuracy
 
+if __name__ == "__main__":
+    main()
 # try:
 #     data = pd.read_csv('data/raw_data.csv')
 #     X = data.drop('target', axis=1)
