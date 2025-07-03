@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/0/e4137cc632344bb1afbcd303c528a945/artifacts
+end_time: 1751299207108
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: e4137cc632344bb1afbcd303c528a945
+run_name: skillful-cod-181
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751299205236
+status: 4
+tags: []
+user_id: shreysharma

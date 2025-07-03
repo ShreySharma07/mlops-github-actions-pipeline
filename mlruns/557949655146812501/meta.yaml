@@ -1,0 +1,6 @@
+artifact_location: file:///Users/shreysharma/mlops_reproducibility_project/mlruns/557949655146812501
+creation_time: 1751300119564
+experiment_id: '557949655146812501'
+last_update_time: 1751300119564
+lifecycle_stage: active
+name: LogisticRegressionExperiment

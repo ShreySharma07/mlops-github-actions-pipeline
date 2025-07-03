@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/0/97dc0d89248d4889962941c45d9c38c0/artifacts
+end_time: 1751298933860
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 97dc0d89248d4889962941c45d9c38c0
+run_name: silent-colt-89
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751298933785
+status: 4
+tags: []
+user_id: shreysharma

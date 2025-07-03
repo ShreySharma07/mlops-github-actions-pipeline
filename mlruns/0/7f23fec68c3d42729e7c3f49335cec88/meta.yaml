@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/0/7f23fec68c3d42729e7c3f49335cec88/artifacts
+end_time: 1751299652724
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 7f23fec68c3d42729e7c3f49335cec88
+run_name: useful-donkey-583
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751299650977
+status: 4
+tags: []
+user_id: shreysharma

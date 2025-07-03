@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/shreysharma/mlops_reproducibility_project/mlruns/557949655146812501/62f7aa1f3d4345b5ba940da62c6bbb19/artifacts
+end_time: 1751300999855
+entry_point_name: ''
+experiment_id: '557949655146812501'
+lifecycle_stage: active
+run_id: 62f7aa1f3d4345b5ba940da62c6bbb19
+run_name: defiant-shrimp-97
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751300998027
+status: 3
+tags: []
+user_id: shreysharma

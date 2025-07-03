@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/shreysharma/mlops_reproducibility_project/mlruns/557949655146812501/20b07d1df275424ba81e0c6ef52b1bf9/artifacts
+end_time: 1751300121431
+entry_point_name: ''
+experiment_id: '557949655146812501'
+lifecycle_stage: active
+run_id: 20b07d1df275424ba81e0c6ef52b1bf9
+run_name: adaptable-horse-403
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751300119638
+status: 3
+tags: []
+user_id: shreysharma
