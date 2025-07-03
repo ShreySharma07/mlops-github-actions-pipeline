@@ -129,15 +129,13 @@ jobs:
       # compare to baseline, and then register to MLflow Model Registry.
       # For now, we'll just check for the presence of the model file as a success indicator.
       run: |
-        echo "Simulating model evaluation..."
-        # Check for both possible model locations
-        LATEST_RUN_DIR=$(find mlruns -maxdepth 3 -type d -name "artifacts" | head -n 1)
-        if [ -d "$LATEST_RUN_DIR/logistic-model" ] || [ -f "$LATEST_RUN_DIR/model.pkl" ]; then
-          echo "Model artifact found. Evaluation criteria would be checked here."
+        echo "Looking for model artifacts..."
+        MODEL_FILE=$(find mlruns -type f -name "model.pkl" | head -n 1)
+        if [ -f "$MODEL_FILE" ]; then
+          echo "Model artifact found at $MODEL_FILE"
           echo "Simulated evaluation passed. Model ready for registration/packaging."
         else
           echo "Model artifact not found. Evaluation failed."
-          ls -la mlruns/
           find mlruns/ -name "*.pkl" -o -name "*.json" | head -10
           exit 1
         fi

@@ -128,9 +128,9 @@ def main():
                 print(f'Error with MLflow model logging: {e2}')
             try:
                 import joblib
-                model_path = os.path.join(mlruns_dir, 'model.pkl')
+                model_path = 'model.pkl'
                 joblib.dump(model, model_path)
-                mlflow.log_artifact(model_path, 'model')
+                mlflow.log_artifact(model_path)
                 print(f'Model saved to {model_path}')
             except Exception as e2:
                 print(f'Error saving model: {e2}')
