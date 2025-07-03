@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/shreysharma/mlops_reproducibility_project/mlruns/557949655146812501/c34c533918754ed282c793eb19cfd2d8/artifacts
+end_time: 1751516253410
+entry_point_name: ''
+experiment_id: '557949655146812501'
+lifecycle_stage: active
+run_id: c34c533918754ed282c793eb19cfd2d8
+run_name: stylish-deer-917
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751516251454
+status: 3
+tags: []
+user_id: shreysharma

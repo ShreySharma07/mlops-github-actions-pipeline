@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/shreysharma/mlops_reproducibility_project/mlruns/557949655146812501/5c183d0e8f214bfdadf1f3e6a48afea3/artifacts
+end_time: 1751516386739
+entry_point_name: ''
+experiment_id: '557949655146812501'
+lifecycle_stage: active
+run_id: 5c183d0e8f214bfdadf1f3e6a48afea3
+run_name: painted-skink-888
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751516384971
+status: 3
+tags: []
+user_id: shreysharma

@@ -8,6 +8,7 @@ import numpy as np
 import joblib
 import mlflow
 import mlflow.sklearn
+from mlflow.models.signature import infer_signature
 
 #mlflow.set_tracking_uri('http://localhost:5000')
 mlflow.set_tracking_uri("file:./mlruns")
@@ -23,9 +24,13 @@ with mlflow.start_run() as run:
         exit()
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train = X_train.astype('float64')
+    X_test = X_test.astype('float64')
+    y_train = y_train.astype('float64')
+    y_test = y_test.astype('float64')
 
     #Define model parameters and log them with mlflow
-    solver = 'liblinear'
+    solver = 'lbfgs'
     c = 10.0
     #multi_class = 'multinomial'
     random_state_model = 42
@@ -46,11 +51,14 @@ with mlflow.start_run() as run:
     mlflow.log_metric('accuracy', accuracy)
     print(f'Accuracy: {accuracy}')
 
+    signature = infer_signature(X_train, predictions.astype('float64'))
+
     # ---- Logging model as artifact ----
     mlflow.sklearn.log_model(
         sk_model = model,
         name = "logistic-model",
-        input_example = X_train)
+        input_example = X_train,
+        signature=signature)
     print(f'Model registered and logged with MLflow {mlflow.active_run().info.run_id}')
 
     # Link DVC data version to MLflow run (conceptually, actual DVC integration is more advanced)

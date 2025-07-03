@@ -1,0 +1,10 @@
+artifact_location: file:///Users/shreysharma/mlops_reproducibility_project/mlruns/557949655146812501/models/m-af4828fe7815454c80dba1003748f59f/artifacts
+creation_timestamp: 1751516384996
+experiment_id: '557949655146812501'
+last_updated_timestamp: 1751516386728
+model_id: m-af4828fe7815454c80dba1003748f59f
+model_type: null
+name: logistic-model
+source_run_id: 5c183d0e8f214bfdadf1f3e6a48afea3
+status: 2
+status_message: null

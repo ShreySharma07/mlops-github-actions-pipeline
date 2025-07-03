@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/shreysharma/mlops_reproducibility_project/mlruns/557949655146812501/f016b439ad4849cc9a3020a45701fc93/artifacts
+end_time: 1751516719100
+entry_point_name: ''
+experiment_id: '557949655146812501'
+lifecycle_stage: active
+run_id: f016b439ad4849cc9a3020a45701fc93
+run_name: amusing-stoat-721
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751516717332
+status: 3
+tags: []
+user_id: shreysharma

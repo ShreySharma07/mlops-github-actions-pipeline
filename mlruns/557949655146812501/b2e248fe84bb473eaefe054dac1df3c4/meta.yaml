@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/shreysharma/mlops_reproducibility_project/mlruns/557949655146812501/b2e248fe84bb473eaefe054dac1df3c4/artifacts
+end_time: 1751516573957
+entry_point_name: ''
+experiment_id: '557949655146812501'
+lifecycle_stage: active
+run_id: b2e248fe84bb473eaefe054dac1df3c4
+run_name: loud-deer-999
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751516572140
+status: 3
+tags: []
+user_id: shreysharma
