@@ -1,5 +1,6 @@
 
 # .github/workflows/mlops_pipeline.yml
+
 name: MLOps CI/CD Pipeline
 
 # This workflow is triggered on pushes to the 'main' branch.
@@ -13,7 +14,7 @@ on:
   #     - main
 
 jobs:
-  # Job 1: Code & Environment Setup / Unit Testing
+  # Job for Code & Environment Setup
   setup_and_test_code:
     runs-on: ubuntu-latest # Run on a fresh Ubuntu virtual machine
 
@@ -24,21 +25,21 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9' # IMPORTANT: Ensure this matches your local Python version or app_requirements.txt compatibility
+        python-version: '3.9' # Ensure this matches your local environment or app_requirements.txt
 
-    - name: Install dependencies (app.py minimal requirements)
+    - name: Install dependencies for app.py
       run: pip install -r app_requirements.txt # Install only what's needed for the app/inference
 
-    - name: Run unit tests (Placeholder for tests/)
-      # In a real project, you'd have 'pytest' or similar configured to run tests/
+    - name: Run unit tests (Placeholder)
+      # In a real project, you'd have 'pytest' or similar here
       run: |
         echo "Running dummy unit tests for app.py and training scripts..."
         # Example: python -m pytest tests/
-        # For this exercise, let's just ensure essential files exist to simulate a basic check
-        ls src/app.py src/train_model.py src/generate_data.py Dockerfile requirements.txt || exit 1
-        echo "Dummy code/file existence tests passed."
+        # Add a simple check for required files to simulate "code quality"
+        ls app.py train_model.py generate_data.py Dockerfile || exit 1
+        echo "Dummy tests passed."
 
-  # Job 2: Data Preparation and Model Training
+  # Job for Data Preparation and Training
   data_prep_and_train:
     needs: setup_and_test_code # This job depends on the success of the 'setup_and_test_code' job
     runs-on: ubuntu-latest
@@ -50,40 +51,39 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9' # Match previous Python version
+        python-version: '3.9'
 
     - name: Install full ML dependencies (for training)
       # If you used environment.yml with conda, you'd use a different action/commands here.
-      # For simplicity, if using pip for all, ensure your requirements.txt covers all training libs.
+      # For simplicity, if using pip for all, use requirements.txt (your dev env)
       run: |
-        # Assuming 'requirements.txt' contains all libraries for both app and training.
-        # Adjust if you have separate files or are using Conda (e.g., 'conda env create -f environment.yml')
-        pip install -r requirements.txt # Use your main requirements.txt if it has all libs
-        pip install mlflow # Ensure mlflow is installed for logging
+        # For Conda:
+        # conda env create -f environment.yml
+        # conda activate mlops_env
+        # For Pip (assuming your requirements.txt covers dev/training libs):
+        pip install -r app_requirements.txt pandas scikit-learn numpy mlflow joblib # Ensure all training libs are here
 
     - name: Generate Data (simulate data ingestion/validation)
-      run: python src/generate_data.py
+      run: python generate_data.py
       # In a real pipeline, this would involve more sophisticated data validation
       # and potentially DVC commands to pull/push data.
 
     - name: Train Model & Log with MLflow
       # Note: MLflow will log to './mlruns' locally within the GitHub Actions runner.
-      # For persistent MLflow tracking, you'd configure a remote tracking URI
-      # (e.g., MLFLOW_TRACKING_URI: http://your-mlflow-server.com).
-      # For this demo, we save the local mlruns folder as an artifact.
-      run: python src/train_model.py
+      # For persistent MLflow tracking, you'd configure a remote tracking URI.
+      run: python train_model.py
       env:
-        MLFLOW_TRACKING_URI: ./mlruns # Keep MLflow tracking local to the runner for this demo
+        MLFLOW_TRACKING_URI: ./mlruns # Keep it local to the runner for this demo
 
     - name: Archive MLflow Artifacts
-      # This step saves the entire mlruns folder (containing models, metrics, params)
-      # as an artifact, so you can review them from the GitHub Actions UI after the run.
+      # This step saves the MLflow run artifacts (model, metrics, params)
+      # so you can review them from the GitHub Actions UI.
       uses: actions/upload-artifact@v4
       with:
         name: mlflow-artifacts
-        path: mlruns/ # Path to the mlruns directory
+        path: mlruns/
 
-  # Job 3: Model Evaluation and Registration (simulated)
+  # Job for Model Evaluation and Registration (simulated)
   evaluate_and_register_model:
     needs: data_prep_and_train # Depends on training completion
     runs-on: ubuntu-latest
@@ -97,87 +97,70 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install minimal dependencies for evaluation
-      run: pip install pandas scikit-learn numpy mlflow # Ensure these are sufficient for your evaluation logic
+    - name: Install dependencies for evaluation
+      run: pip install pandas scikit-learn numpy # Minimal for evaluation if separate script
 
     - name: Download MLflow Artifacts
-      # This step downloads the 'mlflow-artifacts' from the previous job
-      # and recreates the mlruns directory in this job's runner.
       uses: actions/download-artifact@v4
       with:
         name: mlflow-artifacts
         path: mlruns/ # This recreates the mlruns directory
 
     - name: Evaluate Model (Simulated)
-      # In a real scenario, you'd load the model from the downloaded mlruns, evaluate it,
-      # compare its performance to a baseline (e.g., current production model),
-      # and then potentially register it to a remote MLflow Model Registry.
+      # In a real scenario, you'd load the model from mlruns, evaluate it,
+      # compare to baseline, and then register to MLflow Model Registry.
+      # For now, we'll just check for the presence of the model file as a success indicator.
       run: |
         echo "Simulating model evaluation..."
-        # Find the latest MLflow run artifact path for the model
-        # This is a bit tricky; in a real scenario, you'd parse MLflow logs or use MLflow API.
-        # For this demo, we'll just check for the presence of a 'model' directory inside mlruns.
-        LATEST_RUN_MODEL_PATH=$(find mlruns -type f -name "MLmodel" | head -n 1 | xargs dirname)
-        if [ -d "$LATEST_RUN_MODEL_PATH" ]; then
-          echo "Model artifact structure found at: $LATEST_RUN_MODEL_PATH. Evaluation criteria would be checked here."
-          # Example: python evaluation_script.py --model-path $LATEST_RUN_MODEL_PATH
+        # Find the latest run's artifact path for the model
+        LATEST_RUN_DIR=$(find mlruns -maxdepth 2 -type d -name "artifacts" | head -n 1)
+        if [ -d "$LATEST_RUN_DIR/model" ]; then
+          echo "Model artifact found. Evaluation criteria would be checked here."
           echo "Simulated evaluation passed. Model ready for registration/packaging."
-          # Real step would be: mlflow.register_model(...) or promote to staging based on evaluation outcome.
+          # Real step would be: mlflow.register_model(...) or promote to staging
         else
           echo "Model artifact not found. Evaluation failed."
           exit 1
         fi
 
-  # Job 4: Model Packaging (Docker Image Build)
+  # Job for Model Packaging (Docker Image Build)
   package_model:
     needs: evaluate_and_register_model # Depends on successful evaluation
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: ml-inference-service # Your desired Docker image name
+      IMAGE_NAME: ml-inference-service
+      # For a real Docker Hub push, you'd add DOCKER_USERNAME and DOCKER_PASSWORD as secrets
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Set up Docker Buildx (for better multi-platform builds)
-      # Recommended for robust Docker builds in CI
       uses: docker/setup-buildx-action@v3
 
     - name: Build Docker image
-      # Tag with both 'latest' and the Git SHA for unique versioning
       run: |
         docker build -t $IMAGE_NAME:${{ github.sha }} .
         docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:latest
-        echo "Docker image built: $IMAGE_NAME:latest (and tagged with SHA: ${{ github.sha }})"
+        echo "Docker image built: $IMAGE_NAME:latest"
+      # In a real scenario, you'd then push to a registry:
+      # - name: Log in to Docker Hub (or other registry)
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
+      # - name: Push Docker image
+      #   run: docker push $IMAGE_NAME:${{ github.sha }} && docker push $IMAGE_NAME:latest
 
-    # Optional: Log in to a Docker registry and push the image.
-    # This requires setting up secrets in your GitHub repository.
-    # - name: Log in to Docker Hub (or other registry)
-    #   uses: docker/login-action@v3
-    #   with:
-    #     username: ${{ secrets.DOCKER_USERNAME }}
-    #     password: ${{ secrets.DOCKER_PASSWORD }}
-    # - name: Push Docker image
-    #   run: |
-    #     docker push $IMAGE_NAME:${{ github.sha }}
-    #     docker push $IMAGE_NAME:latest
-    #     echo "Docker images pushed to registry."
-
-  # Job 5: Model Deployment (Simulated)
+  # Job for Model Deployment (Simulated)
   deploy_model:
     needs: package_model # Depends on successful packaging
     runs-on: ubuntu-latest
-    # Optional: Add an environment for deployment (e.g., staging, production)
-    # environment:
-    #   name: Production
-    #   url: https://your-model-endpoint.com
 
     steps:
     - name: Simulate Deployment
       run: |
         echo "Simulating deployment of new model version..."
-        echo "This would involve updating a Kubernetes deployment, AWS SageMaker endpoint, Google Cloud Vertex AI endpoint, etc."
-        echo "Deployment of Docker image $IMAGE_NAME:${{ github.sha }} successful!"
-        # In a real scenario, you'd use tools like kubectl, aws cli, gcloud cli, Terraform, or Pulumi here.
-        # Example (conceptual): kubectl apply -f kubernetes_deployment.yaml
-        # Or use cloud-specific deployment commands.
+        echo "This would involve updating a Kubernetes deployment, AWS SageMaker endpoint, etc."
+        echo "Deployment of Docker image ml-inference-service:${{ github.sha }} successful!"
+        # In a real scenario, you'd use kubectl, aws cli, gcloud cli, or terraform/pulumi here.
