@@ -10,7 +10,7 @@ import mlflow
 import mlflow.sklearn
 
 #mlflow.set_tracking_uri('http://localhost:5000')
-mlflow.set_tracking_uri("file:///Users/shreysharma/mlops_reproducibility_project/mlruns")
+mlflow.set_tracking_uri("file:./mlruns")
 mlflow.set_experiment('LogisticRegressionExperiment')
 
 with mlflow.start_run() as run:
