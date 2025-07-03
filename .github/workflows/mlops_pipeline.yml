@@ -25,7 +25,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9' # Ensure this matches your local environment or app_requirements.txt
+        python-version: '3.12.4' # Ensure this matches your local environment or app_requirements.txt
 
     - name: Install dependencies for app.py
       run: pip install -r app_requirements.txt # Install only what's needed for the app/inference
