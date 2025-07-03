@@ -61,7 +61,7 @@ with mlflow.start_run() as run:
     # ---- Logging model as artifact ----
     mlflow.sklearn.log_model(
         sk_model=model,
-        artifact_path="logistic-model",
+        name="logistic-model",
         input_example=X_train.head(5),
         signature=signature
     )
